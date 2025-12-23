@@ -25,7 +25,7 @@ app.get("/", (req, res) => {
     res.send(`<h1>ยินดีต้อนรับ ${req.session.user.username}</h1>
               <a href="/logout">Logout</a>`);
   } else {
-    res.redirect("/login.html");
+    res.sendFile(__dirname + "/public/index.html");
   }
 });
 
@@ -58,7 +58,7 @@ app.post("/login", async (req, res) => {
 
 app.get("/logout", (req, res) => {
   req.session.destroy();
-  res.redirect("/login.html");
+  res.redirect("/");
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
