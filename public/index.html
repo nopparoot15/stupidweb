@@ -4,15 +4,88 @@
 <meta charset="UTF-8">
 <title>Cyberpunk Web</title>
 <link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
+<div class="background"></div>
 <div class="container">
-  <h1>🌐 Cyber Web</h1>
-  <p>เข้าสู่ระบบหรือสมัครสมาชิกเพื่อเริ่มใช้งาน</p>
+  <h1>🌐 Cyberpunk Portal</h1>
   <div class="buttons">
-    <button onclick="location.href='/register.html'">สมัครสมาชิก</button>
-    <button onclick="location.href='/login.html'">Login</button>
+    <button id="openRegister">สมัครสมาชิก</button>
+    <button id="openLogin">Login</button>
+  </div>
+  <div id="welcome" class="welcome"></div>
+  <button id="logoutBtn" class="logout" style="display:none;">Logout</button>
+</div>
+
+<!-- Modal Register -->
+<div id="registerModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2>สมัครสมาชิก</h2>
+    <input type="text" id="regUsername" placeholder="Username">
+    <input type="password" id="regPassword" placeholder="Password">
+    <button id="registerBtn">สมัคร</button>
   </div>
 </div>
+
+<!-- Modal Login -->
+<div id="loginModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2>Login</h2>
+    <input type="text" id="loginUsername" placeholder="Username">
+    <input type="password" id="loginPassword" placeholder="Password">
+    <button id="loginBtn">Login</button>
+  </div>
+</div>
+
+<script>
+const registerModal = document.getElementById('registerModal');
+const loginModal = document.getElementById('loginModal');
+const openRegister = document.getElementById('openRegister');
+const openLogin = document.getElementById('openLogin');
+const closeBtns = document.querySelectorAll('.close');
+const welcome = document.getElementById('welcome');
+const logoutBtn = document.getElementById('logoutBtn');
+
+openRegister.onclick = () => registerModal.style.display = 'block';
+openLogin.onclick = () => loginModal.style.display = 'block';
+closeBtns.forEach(btn => btn.onclick = () => { registerModal.style.display='none'; loginModal.style.display='none'; });
+window.onclick = e => { if(e.target===registerModal) registerModal.style.display='none'; if(e.target===loginModal) loginModal.style.display='none'; }
+
+// Register
+document.getElementById('registerBtn').onclick = async ()=>{
+  const username = document.getElementById('regUsername').value;
+  const password = document.getElementById('regPassword').value;
+  const res = await fetch('/api/register',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username,password})});
+  const data = await res.json();
+  Swal.fire({icon: data.success?'success':'error', title: data.msg});
+  if(data.success){ registerModal.style.display='none'; }
+};
+
+// Login
+document.getElementById('loginBtn').onclick = async ()=>{
+  const username = document.getElementById('loginUsername').value;
+  const password = document.getElementById('loginPassword').value;
+  const res = await fetch('/api/login',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username,password})});
+  const data = await res.json();
+  Swal.fire({icon: data.success?'success':'error', title: data.msg});
+  if(data.success){
+    loginModal.style.display='none';
+    welcome.innerHTML = `ยินดีต้อนรับ ${data.username}`;
+    logoutBtn.style.display='block';
+  }
+};
+
+// Logout
+logoutBtn.onclick = async ()=>{
+  const res = await fetch('/api/logout',{method:'POST'});
+  const data = await res.json();
+  Swal.fire({icon:'success', title:data.msg});
+  welcome.innerHTML='';
+  logoutBtn.style.display='none';
+};
+</script>
 </body>
 </html>
