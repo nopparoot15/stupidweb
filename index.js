@@ -13,6 +13,7 @@ const pool = new Pool({
 });
 
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
 app.use(session({
   secret: "mysecretkey",
   resave: false,
@@ -20,65 +21,61 @@ app.use(session({
 }));
 app.use(express.static("public"));
 
-// สร้าง table users อัตโนมัติถ้ายังไม่มี
+// สร้าง table users อัตโนมัติ
 (async () => {
-  try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        username TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL
-      )
-    `);
-    console.log("✅ Table users ready");
-
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-  } catch (err) {
-    console.error("❌ Error creating table:", err);
-  }
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      username TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL
+    )
+  `);
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 })();
 
-app.get("/", (req, res) => {
-  if(req.session.user){
-    res.send(`<h1>ยินดีต้อนรับ ${req.session.user.username}</h1>
-              <a href="/logout">Logout</a>`);
-  } else {
-    res.sendFile(__dirname + "/public/index.html");
+// API สำหรับ register
+app.post("/api/register", async (req,res)=>{
+  const {username, password} = req.body;
+  if(!username || !password){
+    return res.json({success:false, msg:"กรอกข้อมูลไม่ครบ"});
   }
-});
-
-app.post("/register", async (req, res) => {
-  const { username, password } = req.body;
-  const hashed = await bcrypt.hash(password, 10);
-  try {
-    await pool.query("INSERT INTO users(username,password) VALUES($1,$2)", [username, hashed]);
-    res.redirect("/");
-  } catch(err){
-    res.send("มีปัญหา: " + err);
-  }
-});
-
-app.post("/login", async (req, res) => {
-  const { username, password } = req.body;
-  try {
-    const result = await pool.query("SELECT * FROM users WHERE username=$1", [username]);
-    if(result.rows.length > 0){
-      const user = result.rows[0];
-      if(await bcrypt.compare(password, user.password)){
-        req.session.user = { id: user.id, username: user.username };
-        res.redirect("/");
-      } else {
-        res.send("รหัสผ่านผิด");
-      }
-    } else {
-      res.send("ไม่มีผู้ใช้นี้");
+  const hashed = await bcrypt.hash(password,10);
+  try{
+    await pool.query("INSERT INTO users(username,password) VALUES($1,$2)", [username,hashed]);
+    res.json({success:true, msg:"สมัครสมาชิกเรียบร้อย"});
+  }catch(err){
+    if(err.code === '23505'){ // duplicate
+      res.json({success:false, msg:"Username นี้มีคนใช้แล้ว"});
+    }else{
+      res.json({success:false, msg:"เกิดข้อผิดพลาด"});
     }
-  } catch(err) {
-    res.send("มีปัญหา: " + err);
   }
 });
 
-app.get("/logout", (req, res) => {
+// API สำหรับ login
+app.post("/api/login", async (req,res)=>{
+  const {username, password} = req.body;
+  if(!username || !password){
+    return res.json({success:false, msg:"กรอกข้อมูลไม่ครบ"});
+  }
+  try{
+    const result = await pool.query("SELECT * FROM users WHERE username=$1",[username]);
+    if(result.rows.length===0) return res.json({success:false, msg:"ไม่พบผู้ใช้นี้"});
+    const user = result.rows[0];
+    const match = await bcrypt.compare(password,user.password);
+    if(match){
+      req.session.user = {id:user.id, username:user.username};
+      res.json({success:true, msg:"Login สำเร็จ", username:user.username});
+    }else{
+      res.json({success:false, msg:"รหัสผ่านผิด"});
+    }
+  }catch(err){
+    res.json({success:false, msg:"เกิดข้อผิดพลาด"});
+  }
+});
+
+// API logout
+app.post("/api/logout",(req,res)=>{
   req.session.destroy();
-  res.redirect("/");
+  res.json({success:true, msg:"Logout สำเร็จ"});
 });
