@@ -2,23 +2,29 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>Cyberpunk Web</title>
+<title>Cyber Spin Portal</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 <div class="background"></div>
 <div class="container">
-  <h1>🌐 Cyberpunk Portal</h1>
+  <h1>🌐 Cyberpunk Spin Portal</h1>
   <div class="buttons">
     <button id="openRegister">สมัครสมาชิก</button>
     <button id="openLogin">Login</button>
   </div>
   <div id="welcome" class="welcome"></div>
   <button id="logoutBtn" class="logout" style="display:none;">Logout</button>
+
+  <div id="gameArea" style="display:none; margin-top:20px;">
+    <h2>🎰 Spin the Cyber Wheel!</h2>
+    <button id="spinBtn">SPIN!</button>
+    <div id="spinResult" style="margin-top:20px; font-size:1.5em;"></div>
+  </div>
 </div>
 
-<!-- Modal Register -->
+<!-- Register Modal -->
 <div id="registerModal" class="modal">
   <div class="modal-content">
     <span class="close">&times;</span>
@@ -29,7 +35,7 @@
   </div>
 </div>
 
-<!-- Modal Login -->
+<!-- Login Modal -->
 <div id="loginModal" class="modal">
   <div class="modal-content">
     <span class="close">&times;</span>
@@ -48,6 +54,9 @@ const openLogin = document.getElementById('openLogin');
 const closeBtns = document.querySelectorAll('.close');
 const welcome = document.getElementById('welcome');
 const logoutBtn = document.getElementById('logoutBtn');
+const gameArea = document.getElementById('gameArea');
+const spinBtn = document.getElementById('spinBtn');
+const spinResult = document.getElementById('spinResult');
 
 openRegister.onclick = () => registerModal.style.display = 'block';
 openLogin.onclick = () => loginModal.style.display = 'block';
@@ -75,6 +84,7 @@ document.getElementById('loginBtn').onclick = async ()=>{
     loginModal.style.display='none';
     welcome.innerHTML = `ยินดีต้อนรับ ${data.username}`;
     logoutBtn.style.display='block';
+    gameArea.style.display='block';
   }
 };
 
@@ -85,6 +95,34 @@ logoutBtn.onclick = async ()=>{
   Swal.fire({icon:'success', title:data.msg});
   welcome.innerHTML='';
   logoutBtn.style.display='none';
+  gameArea.style.display='none';
+};
+
+// Spin Game
+const prizes = [
+  "คุณได้รับ Neon Blade ⚡",
+  "คุณได้รับ Cyber Helmet 🪖",
+  "คุณได้รับ Energy Drink 🔋",
+  "คุณได้รับ Virtual Coin 💰",
+  "คุณได้รับ Holo Pet 🐾",
+  "คุณได้รับ Nothing… Try Again 😵"
+];
+
+function randomColor(){ const colors=['#0ff','#f0f','#ff0','#0f0','#f00','#00f']; return colors[Math.floor(Math.random()*colors.length)]; }
+
+spinBtn.onclick = ()=>{
+  spinBtn.disabled = true;
+  spinBtn.style.transform = "rotate(360deg)";
+  spinBtn.style.transition = "transform 1s ease";
+  setTimeout(()=>{
+    spinBtn.style.transform="rotate(0deg)";
+    spinBtn.disabled=false;
+    const prize = prizes[Math.floor(Math.random()*prizes.length)];
+    spinResult.innerHTML=prize;
+    spinResult.style.color=randomColor();
+    spinResult.style.textShadow=`0 0 10px ${randomColor()},0 0 20px ${randomColor()}`;
+    Swal.fire({icon:'success', title:prize});
+  },1000);
 };
 </script>
 </body>
