@@ -2,20 +2,17 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>เว็บโง่ๆ</title>
+<title>Cyberpunk Web</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<h1>เว็บโง่ๆ ของฉัน</h1>
-<button onclick="changeText()">กดสิ!</button>
-<div id="text">นี่คือข้อความเดิม</div>
-
-<script>
-function changeText() {
-  const msgs = ["โอ้โห!", "ทำได้แล้ว!", "คุณเก่งจัง!", "ลองอีกครั้ง!", "ฮ่าๆๆ"];
-  const random = msgs[Math.floor(Math.random() * msgs.length)];
-  document.getElementById("text").innerText = random;
-}
-</script>
+<div class="container">
+  <h1>🌐 Cyber Web</h1>
+  <p>เข้าสู่ระบบหรือสมัครสมาชิกเพื่อเริ่มใช้งาน</p>
+  <div class="buttons">
+    <button onclick="location.href='/register.html'">สมัครสมาชิก</button>
+    <button onclick="location.href='/login.html'">Login</button>
+  </div>
+</div>
 </body>
 </html>
